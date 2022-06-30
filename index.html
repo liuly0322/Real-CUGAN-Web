@@ -12,7 +12,7 @@
             <h2>动漫图片放大</h2>
         </el-row>
         <el-row>
-            <el-input v-model="passwd" placeholder="请输入服务密钥"></el-input>
+            <el-input v-model="passwd" placeholder="请输入服务密钥" style="max-width: 400px;"></el-input>
         </el-row>
         <el-row>
             <el-select v-model="scale" placeholder="请选择放大规模">
@@ -25,10 +25,17 @@
             </el-select>
         </el-row>
         <el-row>
-            <input type="file" ref="upload_input" @change="select_file">
-        </el-row>
-        <el-row>
-            <el-button @click="uploadFile">上传</el-button>
+            <el-upload
+                drag
+                list-type="picture"
+                multiple
+                :on-change="upload"
+                :http-request="() => {}"
+                style="max-width: 400px; margin: 0 auto;">
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">将图片拖到此处，或 <em>点击选取</em></div>
+                <div class="el-upload__tip" slot="tip">只能上传 jpg/png 文件</div>
+            </el-upload>
         </el-row>
     </div>
 </body>
@@ -46,7 +53,6 @@
         el: '#app',
         data: function () {
             return {
-                select_file_data: '',
                 target_url: 'http://120.24.73.184:5580/upload',
                 file_url: 'http://120.24.73.184:5580/outputs/',
                 passwd: '',
@@ -64,27 +70,28 @@
             }
         },
         methods: {
-            uploadFile: function () {
-                let uploads = new FormData() // 创建 FormData
-                let config = { headers: { "Content-Type": "multipart/form-data" } }
-                if (this.select_file_data != "") {
-                    uploads.append("file", this.select_file_data[0])
-                    uploads.append("passwd", this.passwd)
-                    uploads.append("scale", this.scale)
-                    url = `${this.target_url}?passwd=${this.passwd}&scale=${this.scale}`
-                    that = this
-                    axios.post(url, uploads, config).then(function (res) {
-                        filepath = that.file_url + res.data.name + '.png'
+            upload: function (file) {
+                let uploads = new FormData()
+                const raw = file.raw
+                const config = { headers: { "Content-Type": "multipart/form-data" } }
+                uploads.append("file", raw)
+                uploads.append("passwd", this.passwd)
+                uploads.append("scale", this.scale)
+                url = `${this.target_url}?passwd=${this.passwd}&scale=${this.scale}`
+                that = this
+                axios.post(url, uploads, config).then(function (res) {
+                    filepath = that.file_url + res.data.name + '.png'
+                    if (res.data.error) {
+                        that.$alert('请检查密钥', '上传失败', {
+                            confirmButtonText: '确定',
+                        });
+                    } else {
                         that.$alert(filepath, '上传完毕', {
                             confirmButtonText: '确定',
                         });
-                    })
-                }
+                    } 
+                })
             },
-            select_file: function (file) {
-                this.select_file_data = file.target.files
-                console.log(this.select_file_data)
-            }
         }
     })
 </script>
