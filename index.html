@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+    <div id="app">
+        <el-row>
+            <h2>动漫图片放大</h2>
+        </el-row>
+        <el-row>
+            <el-input v-model="passwd" placeholder="请输入服务密钥"></el-input>
+        </el-row>
+        <el-row>
+            <el-select v-model="scale" placeholder="请选择放大规模">
+                <el-option
+                    v-for="item in options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                </el-option>
+            </el-select>
+        </el-row>
+        <el-row>
+            <input type="file" ref="upload_input" @change="select_file">
+        </el-row>
+        <el-row>
+            <el-button @click="uploadFile">上传</el-button>
+        </el-row>
+    </div>
+</body>
+<style>
+    .el-row {
+        margin: 2em;
+        text-align: center;
+    }
+</style>
+<script crossorigin="anonymous" integrity="sha512-XdUZ5nrNkVySQBnnM5vzDqHai823Spoq1W3pJoQwomQja+o4Nw0Ew1ppxo5bhF2vMug6sfibhKWcNJsG8Vj9tg==" src="https://lib.baomitu.com/vue/2.6.14/vue.min.js"></script>
+<script crossorigin="anonymous" integrity="sha512-XzTYsDGb24YBPavDRpmrn1oLTMQYcE+NHk8zNvi7weasBtrDXeUexkEZ05Z1vyk+qc0GPtbv9Rpvpii1IKF+Cw==" src="https://lib.baomitu.com/element-ui/2.15.9/index.js"></script>
+<script crossorigin="anonymous" integrity="sha384-n1p+NckrH3jg+8KyXCEJPsETONv97bIEaeeov6+LkuLxo6xLmitGBeADhAOlMYa0" src="https://lib.baomitu.com/axios/0.19.2/axios.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                select_file_data: '',
+                target_url: 'http://120.24.73.184:5580/upload',
+                file_url: 'http://120.24.73.184:5580/outputs/',
+                passwd: '',
+                options: [{
+                    value: 2,
+                    label: '2x'
+                }, {
+                    value: 3,
+                    label: '3x'
+                }, {
+                    value: 4,
+                    label: '4x'
+                }],
+                scale: 2
+            }
+        },
+        methods: {
+            uploadFile: function () {
+                let uploads = new FormData() // 创建 FormData
+                let config = { headers: { "Content-Type": "multipart/form-data" } }
+                if (this.select_file_data != "") {
+                    uploads.append("file", this.select_file_data[0])
+                    uploads.append("passwd", this.passwd)
+                    uploads.append("scale", this.scale)
+                    url = `${this.target_url}?passwd=${this.passwd}&scale=${this.scale}`
+                    that = this
+                    axios.post(url, uploads, config).then(function (res) {
+                        filepath = that.file_url + res.data.name + '.png'
+                        that.$alert(filepath, '上传完毕', {
+                            confirmButtonText: '确定',
+                        });
+                    })
+                }
+            },
+            select_file: function (file) {
+                this.select_file_data = file.target.files
+                console.log(this.select_file_data)
+            }
+        }
+    })
+</script>
+</html>
